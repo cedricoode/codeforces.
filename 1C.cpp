@@ -67,7 +67,7 @@ int approximate(double a1, double a2, double a3) {
         double m1 = a1 * edges / 2 / PI;
         double m2 = a2 * edges / 2/ PI;
         double m3 = a3 * edges / 2 / PI;
-        error = abs(m1 - floor(m1)) + abs(m2 - floor(m2)) + abs(m3 - floor(m3));
+        error = abs(m1 - floor(m1)) + abs(m2 - floor(m2));
         if (error < min_error) {
             min_error = error;
             smallest = edges;
@@ -82,9 +82,9 @@ int approximate(double a1, double a2, double a3) {
     }
 }
 
-double compute_area(Triangle* tri, int edges){
+double compute_area(double r, int edges){
     double alpha = 2* PI / edges;
-    return edges * (tri->r) * (tri->r) * cos(alpha/2) * sin(alpha / 2);
+    return edges * (r) * (r) * cos(alpha/2) * sin(alpha / 2);
 
 };
 
@@ -100,5 +100,5 @@ int main(void) {
     Triangle* tri = new Triangle(p1, p2, p3);
 
     int edges = approximate(tri->alpha1, tri->alpha2, tri->alpha3);
-    cout << fixed << setprecision(8) <<compute_area(tri, edges) << endl;
+    cout << fixed << setprecision(8) <<compute_area(tri->r, edges) << endl;
 }

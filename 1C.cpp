@@ -5,6 +5,10 @@
 const double PI = 3.14159265;
 using namespace std;
 
+double sqr(double v) {
+    return v*v;
+}
+
 struct Point {
     double x;
     double y;
@@ -16,7 +20,7 @@ struct Point {
         this->y = x2;
     }
     double distance(Point* p1) {
-        return sqrt(pow(this->x - p1->x, 2) + pow(this->y - p1->y, 2));
+        return sqrt(sqr(this->x - p1->x) + sqr(this->y - p1->y));
     }
 };
 
@@ -40,7 +44,7 @@ public:
         center->x = 1 / d * ((this->p1->x * this->p1->x+ this->p1->y * this->p1->y) * (this->p2->y - this->p3->y) +
                 (this->p2->x * this->p2->x+ this->p2->y * this->p2->y) * (this->p3->y - this->p1->y) +
                 (this->p3->x * this->p3->x+ this->p3->y * this->p3->y) * (this->p1->y - this->p2->y));
-        center-> y = 1 / d * ((this->p1->x * this->p1->x+ this->p1->y * this->p1->y) * (this->p3->x - this->p2->x) +
+        center->y = 1 / d * ((this->p1->x * this->p1->x+ this->p1->y * this->p1->y) * (this->p3->x - this->p2->x) +
                 (this->p2->x * this->p2->x+ this->p2->y * this->p2->y) * (this->p1->x - this->p3->x) +
                 (this->p3->x * this->p3->x+ this->p3->y * this->p3->y) * (this->p2->x - this->p1->x));
         this->center = center;
@@ -58,6 +62,10 @@ public:
 
 };
 
+double round(double x) {
+    return floor(x + 0.5);
+}
+
 int approximate(double a1, double a2, double a3) {
     int edges = 3;
     double error = 1;
@@ -65,9 +73,9 @@ int approximate(double a1, double a2, double a3) {
     double min_error = 10;
     while (error > 1e-5 && edges <= 100) {
         double m1 = a1 * edges / 2 / PI;
-        double m2 = a2 * edges / 2/ PI;
-        double m3 = a3 * edges / 2 / PI;
-        error = abs(m1 - floor(m1)) + abs(m2 - floor(m2));
+        double m2 = a2 * edges / 2 / PI;
+        error = abs(m1 - round(m1)) + abs(m2 - round(m2));
+        // cout << fixed << setprecision(5) << m1 << " " << m2 << " " << floor(m1) << " " << floor(m2) << endl;
         if (error < min_error) {
             min_error = error;
             smallest = edges;
@@ -100,5 +108,5 @@ int main(void) {
     Triangle* tri = new Triangle(p1, p2, p3);
 
     int edges = approximate(tri->alpha1, tri->alpha2, tri->alpha3);
-    cout << fixed << setprecision(8) <<compute_area(tri->r, edges) << endl;
+    cout << fixed << setprecision(8) << compute_area(tri->r, edges) << endl;
 }

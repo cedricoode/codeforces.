@@ -8,66 +8,75 @@ struct Cell {
     int n2;
     int n5;
     char from;
+    char from5;
+    int value;
     Cell(): n2(0), n5(0){}
 };
 
-struct Body {
-    Cell cell2;
-    Cell cell5;
+struct Coord{
+    int i;
+    int j;
+
+    Coord():i(-1), j(-1) {}
+
+    Coord(int a, int b): i(a), j(b){}
 };
 
 inline void extract_factor2_5_0(int, int&, int&);
 
-inline void merge_body(Body const &body, Body &target);
+inline void merge_body(Cell const &, Cell &);
 
-inline void compare_merge(Body const &bodyu, Body const &bodyl, Body &target);
+inline void compare_merge(Cell const &, Cell const &, Cell &);
 
-void print_most_rounded(vector<vector<Body> > &game, int size);
+void print_most_rounded(vector<vector<Cell> > &, vector<Coord> &, int );
 
 int main(void) {
     int dim;
     cin >> dim;
-    vector<vector<Body> > most_rounded;
+    vector<vector<Cell> > most_rounded;
     most_rounded.resize(dim);
+    vector<Coord> zeros;
+    int zero[] = {-1, -1};
 
     for (int i = 0; i < dim; i++) {
         most_rounded[i].resize(dim);
         for (int j = 0; j < dim; j++) {
-            int value;
-            cin >> value;
-
-            Body &body = most_rounded[i][j];
+            Cell &cell = most_rounded[i][j];
+            cin >> cell.value;
 
             int n2=0, n5=0;
 
-            extract_factor2_5_0(value, n2, n5);
-
-            body.cell2.n2 = n2;
-            body.cell2.n5 = n5;
-            body.cell5.n2 = n2;
-            body.cell5.n5 = n5;
-
+            if (cell.value == 0) {
+                Coord coord(i, j);
+                zeros.push_back(coord);
+                cell.value = 10;
+            } 
+            
+            extract_factor2_5_0(cell.value, n2, n5);
+            cell.n2 = n2;
+            cell.n5 = n5;
+            
             if (i == 0) {
                 if (j - 1 >= 0) {
-                    Body &body_before = most_rounded[i][j-1];
-                    merge_body(body_before, most_rounded[i][j]);
-                    body.cell2.from = 'R';
-                    body.cell5.from = 'R';
+                    Cell &cell_before = most_rounded[i][j-1];
+                    merge_body(cell_before, cell);
+                    cell.from = 'R';
+                    cell.from5 = 'R';
                 }
             } else if (j == 0){
-                Body &body_before = most_rounded[i-1][j];
-                merge_body(body_before, most_rounded[i][j]);
-                body.cell2.from ='D';
-                body.cell5.from ='D';
+                Cell &cell_before = most_rounded[i-1][j];
+                merge_body(cell_before, cell);
+                cell.from ='D';
+                cell.from5 ='D';
             } else {
-                Body &body_u = most_rounded[i-1][j];
-                Body &body_l = most_rounded[i][j-1];
-                compare_merge(body_u, body_l, most_rounded[i][j]);
+                Cell &cell_u = most_rounded[i-1][j];
+                Cell &cell_l = most_rounded[i][j-1];
+                compare_merge(cell_u, cell_l, cell);
             }
         }
     }
 
-    print_most_rounded(most_rounded, dim);
+    print_most_rounded(most_rounded, zeros, dim);
 }
 
 void extract_factor2_5_0(int value, int& n2, int& n5) {
@@ -81,57 +90,59 @@ void extract_factor2_5_0(int value, int& n2, int& n5) {
     }
 }
 
-void merge_body(Body const &body, Body &target) {
-    target.cell2.n2 += body.cell2.n2;
-    target.cell2.n5 += body.cell2.n5;
+void merge_body(Cell const &cell, Cell &target) {
+    target.n2 += cell.n2;
+    target.n5 += cell.n5;
+}
 
-    target.cell5.n5 += body.cell5.n5;
-    target.cell5.n2 += body.cell5.n2;
+int min(int a, int b) {
+    if (a < b) return a;
+    else return b;
+}
+
+int max(int a, int b) {
+    if (a < b) return b;
+    else return a;
 }
 
 
-void compare_merge(Body const &bodyu, Body const &bodyl, Body &target) {
-    if (bodyu.cell2.n2 < bodyl.cell2.n2) {
-        target.cell2.n2 += bodyu.cell2.n2;
-        target.cell2.n5 += bodyu.cell2.n5;
-        target.cell2.from = 'D';
+void compare_merge(Cell const &cellu, Cell const &celll, Cell &target) {
+    if  (cellu.n2 > celll.n2) {
+        target.n2 += celll.n2;
+        target.from = 'R';
     } else {
-        target.cell2.n2 += bodyl.cell2.n2;
-        target.cell2.n5 += bodyl.cell2.n5;
-        target.cell2.from = 'R';
+        target.n2 += cellu.n2;
+        target.from = 'D';
     }
 
-    if (bodyu.cell5.n5 < bodyl.cell5.n5) {
-        target.cell5.n2 += bodyu.cell5.n2;
-        target.cell5.n5 += bodyu.cell5.n5;
-        target.cell5.from = 'D';
+    if (cellu.n5 > celll.n5) {
+        target.n5 += celll.n5;
+        target.from5 = 'R';
     } else {
-        target.cell5.n2 += bodyl.cell5.n2;
-        target.cell5.n5 += bodyl.cell5.n5;
-        target.cell5.from = 'R';
+        target.n5 += cellu.n5;
+        target.from5 = 'D';
     }
-
 }
 
-void print_path(vector<vector<Body> > &game, int size, int which) {
+void print_path(vector<vector<Cell> > &game, int size, int which) {
     string path = "";
-    Body &body = game[size-1][size-1];
+    Cell &cell = game[size-1][size-1];
     int offsetx = 1, offsety = 1;
     if (which == 2) {
         for (int i = 0; i < 2 * size - 2; i++) {
-            body = game[size-offsetx][size-offsety];
-            path = body.cell2.from + path;
-            if (body.cell2.from == 'R') {
+            cell = game[size-offsetx][size-offsety];
+            path = cell.from + path;
+            if (cell.from == 'R') {
                 offsety++;
             } else {
                 offsetx++;
             }
         }
-    } else if (which == 5) {
+    } else {
         for (int i = 0; i < 2 * size - 2; i++) {
-            body = game[size-offsetx][size-offsety];
-            path = body.cell5.from + path;
-            if (body.cell5.from == 'R') {
+            cell = game[size-offsetx][size-offsety];
+            path = cell.from5 + path;
+            if (cell.from5 == 'R') {
                 offsety++;
             } else {
                 offsetx++;
@@ -141,27 +152,41 @@ void print_path(vector<vector<Body> > &game, int size, int which) {
     cout << path << endl;
 }
 
-void print_most_rounded(vector<vector<Body> > &game, int size) {
-    Body &body = game[size-1][size-1];
-    int zero2, zero5 = 0;
-    if (body.cell2.n2 <= body.cell2.n5) {
-        zero2 = body.cell2.n2;
-    } else {
-        zero2 = body.cell2.n5;
+void print_random(Coord &coord, int size) {
+    string path = "";
+    for (int i = 0; i < coord.i; i++) {
+        path += 'D'; 
+    }
+    for (int j = 0; j < coord.j; j++) {
+        path += 'R';
+    }
+    for (int i = coord.i; i < size; i++) {
+        path += 'D';
+    }
+    for (int j = coord.j; j < size; j++) {
+        path += 'R';
     }
 
-    if (body.cell5.n2 <= body.cell5.n5) {
-        zero5 = body.cell5.n2;
+    cout << path << endl;
+}
+
+void print_most_rounded(vector<vector<Cell> > &game, vector<Coord> &zeros, int size) {
+    Cell &cell = game[size-1][size-1];
+    int which, count;
+    if (cell.n2 < cell.n5) {
+        count = cell.n2;
+        which = 2;
     } else {
-        zero5 = body.cell5.n5;
+        count = cell.n5;
+        which = 5;
     }
 
-    if (zero2 < zero5) {
-        cout << zero2 << endl;
-        print_path(game, size, 2);
+    if (zeros.size() != 0 && count != 0) {
+        cout << 1 << endl;
+        print_random(*zeros.begin(), size);
     } else {
-        cout << zero5 << endl;
-        print_path(game, size, 5);        
+        cout << count << endl;
+        print_path(game, size, which);
     }
 }
 

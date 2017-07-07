@@ -92,8 +92,8 @@ public:
 			return drs;
 		}
 
-		float trl_x = this->x;
-		float trl_y = this->y;
+		float trl_x = dr.x;
+		float trl_y = dr.y;
 		float sin_theta = 0, cos_theta = 0;
 		if (compare_float(this->y) == 0) {
 			sin_theta = 1;
@@ -105,17 +105,19 @@ public:
 			cos_theta = (p2x - p1x) / d;
 		}
 
-		float ty = h;
+		Drawing line = line_translation_rotaion(sin_theta, cos_theta, trl_x, trl_y);
+
+		float ty = -line.y * line.r / (pow(line.x) + pow(line.y));
 		float tx1 = sqrt(pow(dr.r) - pow(ty));
 		
-		Drawing dr1(tx1,ty, 0, Point);
+		Drawing dr1(tx1, ty, 0, Point);
 		Drawing p1 = dr1.point_translation_rotation(sin_theta, cos_theta, trl_x, trl_y);
 
 		drs.push_back(p1);
 		
 		if (compare_float(h - dr.r) == -1) {
 			Drawing dr2(-tx1, ty, 0, Point);
-			Drawing p2 = dr1.point_translation_rotation(sin_theta, cos_theta, trl_x, trl_y);
+			Drawing p2 = dr2.point_translation_rotation(sin_theta, cos_theta, trl_x, trl_y);
 			drs.push_back(p2);
 		}
 
@@ -125,7 +127,7 @@ public:
 	vector<Drawing> circle_circle_intersection(Drawing const& dr) const{
 		vector<Drawing> drs;
 		float d = distance(this->x, this->y, dr.x, dr.y);
-		if (compare_float(d - this->r - dr.r) == 1) {
+		if (compare_float(d - this->r - dr.r) == 1 || compare_float(dr.r - d - this->r) == 1 || compare_float(this->r - d - dr.r) == 1) {
 			return drs;
 		}
 	
@@ -139,7 +141,7 @@ public:
 		Drawing p1 = tp.point_translation_rotation(sin_theta, cos_theta, trl_x, trl_y);
 		drs.push_back(p1);
 		
-		if (compare_float(d - this->r - dr.r) == 0) {
+		if (compare_float(d - this->r - dr.r) == -1) {
 			Drawing tp(tx, -ty1, 0 , Point);
 			Drawing p2 = tp.point_translation_rotation(sin_theta, cos_theta, trl_x, trl_y);
 			drs.push_back(p2);
@@ -157,10 +159,10 @@ public:
 		return (-this->r - this->x * x) / this->y;
 	}
 
-	Drawing line_translation_rotaion(float sin_theta, float cos_theta, float trl_x, float trl_y) {
-		float x = this->x * cos_theta - sin_theta * this->y + trlx;
-		float y = this->x * sin_theta + this->y * cos_theta + trly;
-		float c = this->r + this->r * trlx + this->r* trl_y;
+	Drawing line_translation_rotaion(float sin_theta, float cos_theta, float trl_x, float trl_y) const{
+		float x = this->x * cos_theta +  this->y * sin_theta;
+		float y = -this->x * sin_theta + this->y * cos_theta;
+		float c = this->r + this->x * trl_x + this->y* trl_y;
 		return Drawing(x, y, c, Line);
 	}
 
@@ -227,13 +229,15 @@ int main(void) {
 
 	Drawing c4 = circles[0].observeDrawing(circles[1]);
 	Drawing c5 = circles[0].observeDrawing(circles[2]);
-	c4.print_drawing();
-	c5.print_drawing();
+	
+	// c4.print_drawing();
+	// c5.print_drawing();
+	
 	vector<Drawing> drs = c4.computeintersection(c5);
 	int idx = 0;
-	for (vector<Drawing>::iterator i = drs.begin(); i != drs.end(); i++) {
-		(*i).print_drawing();
-	}
+	// for (vector<Drawing>::iterator i = drs.begin(); i != drs.end(); i++) {
+	// 	(*i).print_drawing();
+	// }
 	if (drs.size() == 2) {
 		idx = choose_drawing(drs, circles[0]);
 		drs[idx].print_answer();

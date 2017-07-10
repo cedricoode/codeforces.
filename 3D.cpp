@@ -13,7 +13,7 @@ struct QuestionMark {
 
 bool pair_quotes(char* seq, int start, int end, int &stack_seq);
 
-bool compute_cost(char *seq, vector<QuestionMark> &q_seq, int &stack_seq, int idx, int &cost);
+bool compute_cost(char *seq, vector<QuestionMark> &q_seq, int &stack_seq, int idx, int &cost, vector<char> &selected_seq);
 
 int remains(int idx, int length);
 
@@ -45,13 +45,29 @@ int main(void) {
     
     if (q.size() > 0) {
         int cost = 0;
-        compute_cost(sequence, q, stack_seq, 0, cost);
-        cout << cost << endl;
-        cout << sequence << endl;
+        vector<char> selected_seq;
+        if (compute_cost(sequence, q, stack_seq, 0, cost, selected_seq)) {
+            cout << cost << endl;
+
+            int idx_mark = 0;
+            for (int i = 0; i < length; i++) {
+                if (sequence[i] != '?') {
+                    cout << sequence[i];
+                }else {
+                    cout << selected_seq[idx_mark++];
+                }
+            }
+            cout << endl;
+        } else {
+            cout << -1 << endl;
+        }
     } else {
-        pair_quotes(sequence, 0, length, stack_seq);
-        cout << 0 << endl;
-        cout << sequence << endl;        
+        if (pair_quotes(sequence, 0, length, stack_seq)) {
+            cout << 0 << endl;
+            cout << sequence << endl;
+        } else {
+            cout << -1 << endl;
+        }
     }
     
 }
@@ -78,29 +94,45 @@ bool pair_quotes(char* seq, int start, int end, int &stack_seq) {
 }
 
 
-bool compute_cost(char *seq, vector<QuestionMark> &q_seq, int &stack_seq, int idx, int &cost) {
+bool compute_cost(char *seq, vector<QuestionMark> &q_seq, int &stack_seq, int idx, int &cost, vector<char> &selected_seq) {
     int length = strlen(seq);
-    if (stack_seq-2 >= remains(q_seq[idx].idx, length)) {
-        return false;
-    }
     
     int start = 0;
     if (idx != 0) {
         start = q_seq[idx-1].idx + 1;
     }
+
+    if (stack_seq-2 >= remains(start, length)) {
+        return false;
+    }
+
     if (!pair_quotes(seq, start, q_seq[idx].idx, stack_seq)) {
         return false;
     }
 
     if (stack_seq == 0) {
         cost += q_seq[idx].o_cost;
-        seq[q_seq[idx].idx] = '(';
+        char previous = seq[q_seq[idx].idx];
+        selected_seq.push_back('(');
+        // seq[q_seq[idx].idx] = '(';
         stack_seq++;
         if (idx + 1 == q_seq.size()) {
             int temp_idx = q_seq[idx].idx + 1;
-            return pair_quotes(seq, temp_idx, length, stack_seq);
+            if (pair_quotes(seq, temp_idx, length, stack_seq)) {
+                return true;
+            } else {
+                // seq[q_seq[idx].idx] = previous;
+                selected_seq.pop_back();
+                return false;
+            }
         } else {
-            return compute_cost(seq, q_seq, stack_seq, idx+1, cost);
+            if (compute_cost(seq, q_seq, stack_seq, idx+1, cost, selected_seq)) {
+                return true;
+            } else {
+                // seq[q_seq[idx].idx] = previous;
+                selected_seq.pop_back();
+                return false;
+            }
         }
     }
     // else if (stack_seq  == remains(q_seq[idx].idx, length) + 1) {
@@ -120,12 +152,13 @@ bool compute_cost(char *seq, vector<QuestionMark> &q_seq, int &stack_seq, int id
 
             if ((isowork && iscwork && s1 <= s2) || (isowork && !iscwork)) {
                 stack_seq = s1;
-                seq[q_seq[idx].idx] = '(';
+                // seq[q_seq[idx].idx] = '(';
+                selected_seq.push_back('(');
                 cost += q_seq[idx].o_cost;
                 return true;
             } else if ((isowork && iscwork && s2 > s1) || (iscwork && !isowork)) {
                 stack_seq = s2;
-                seq[q_seq[idx].idx] = ')';
+                selected_seq.push_back(')');                
                 cost += q_seq[idx].c_cost;
                 return true;
             } else {
@@ -137,21 +170,27 @@ bool compute_cost(char *seq, vector<QuestionMark> &q_seq, int &stack_seq, int id
             int temp_idx = idx + 1;
             int temp_cost1 = cost+q_seq[idx].o_cost;
             int temp_cost2 = cost+q_seq[idx].c_cost;
-
-            bool isowork = compute_cost(seq, q_seq, s1, temp_idx, temp_cost1);
-            bool iscwork = compute_cost(seq, q_seq, s2, temp_idx, temp_cost2);
+            vector<char> v1(selected_seq);
+            vector<char> v2(selected_seq);
+            v1.push_back('(');
+            v2.push_back(')');       
+            bool isowork = compute_cost(seq, q_seq, s1, temp_idx, temp_cost1, v1);
+            bool iscwork = compute_cost(seq, q_seq, s2, temp_idx, temp_cost2, v2);
             if ((isowork && iscwork && temp_cost1 <= temp_cost2) || 
                 (isowork && !iscwork)) {
                 
                 cost = temp_cost1;
-                seq[q_seq[idx].idx] = '(';
+                // seq[q_seq[idx].idx] = '(';
+                selected_seq = vector<char>(v1);
                 stack_seq = s1;
                 return true;
             } else if ((isowork && iscwork && temp_cost1 > temp_cost2) || 
                 (!isowork && iscwork)) {
                 
                 cost = temp_cost2;
-                seq[q_seq[idx].idx] = ')';
+                // seq[q_seq[idx].idx] = ')';
+                // selected_seq.push_back(')');
+                selected_seq = vector<char>(v2);
                 stack_seq = s2;
                 return true;
             } else {

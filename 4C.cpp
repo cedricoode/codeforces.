@@ -38,6 +38,7 @@ class TriNode {
 int main(void) {
 	int requests = 0;
 	cin >> requests;
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
 	TriNode root;
 	char temp[32];

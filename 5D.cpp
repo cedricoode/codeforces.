@@ -7,29 +7,31 @@ using namespace std;
 
 double pow(double t);
 
-double compute_time(int a, int v, double w, double s);
+double compute_time(double a, double v, double w, double s);
 
 
 
 int main(void) {
-	int a, v, l , d, w;
+	double a, v, l , d, w;
 	cin >> a >> v >> l >> d >> w;
-
-	double t = 1.0 * w / a;
 	double tsum = 0;
+
+	double d1 = 0.5 * pow(w) / a;
 	double slowdown = 0.5 * (pow(v) - pow(w)) / a;
-	if (slowdown <= 0) {
+	double d2 = 0.5 * pow(v) / a;
+	if (v < w || d1 >= d) {
 		tsum = compute_time(a, v, 0, l);
-	} else if (0.5 * a * pow(t) >= d) {
-		double t1 = sqrt(2.0 * d / a);
-		tsum =  t1 + compute_time(a, v, a*t1, l - d);
-	} else if (d >= 0.5 * a * pow(t) + slowdown) {
-		tsum = t + (v - w) / a + (d - 0.5 * a * pow(t) - slowdown) / v + compute_time(a, v, w, l-d);
+	} else if (slowdown + d2 <= d) {
+		double t1 = v /a ;
+		double t2 = 1.0 * (v-w) /a;
+		double t3 = (d - slowdown - d2) / v;
+		tsum = t1 + t2 + t3 + compute_time(a, v, w, l-d);
 	} else {
-		double t1 = sqrt((d + pow(w) / 2 / a) / a);
-		double t2 = (a * t1 - w) / a;
-		tsum = t1 + t2 + compute_time(a, v, w, l-d);
+		double t1 = sqrt((d+pow(w)/2/a) / a);
+		double t2 = (a*t1 - w) /a;
+		tsum = t1 + t2 + compute_time(a,v, w, l-d); 
 	}
+
 	cout << fixed << setprecision(6) << tsum << endl;
 }
 
@@ -37,12 +39,12 @@ double pow(double t) {
 	return t*t;
 }
 
-double compute_time(int a, int v, double w, double s) {
-	double t1 = (v - w) / a;
-	double t2 = (s - 0.5 * a * pow(t1)) / v;
-	if (t2 < 0) {
-		return (sqrt(pow(w) + 2 * a * s) - w) / a;
+double compute_time(double a, double v, double w, double s) {
+	double t1 = (v-w) /a;
+	double d = 0.5 * a * pow(t1) + w * t1;
+	if ( d>= s) {
+		return (-w + sqrt(pow(w) + 2* a*s)) / a;
 	} else {
-		return t1 + t2;
+		return t1 + (s - d) / v;
 	}
 }

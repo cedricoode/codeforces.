@@ -15,11 +15,13 @@ struct mycompare {
 	}
 };
 
-int find_limits(int* circle, map<pair<int, int>, pair<int, int>, mycompare> &numbers, map<pair<int, int>, pair<int, int>, mycompare>::iterator const&i);
+int find_limits(int* circle, map<pair<int, int>, pair<int, int>, mycompare> &numbers, map<pair<int, int>, pair<int, int>, mycompare>::iterator &itr);
 
 inline int next_index(int c, int total, int inc);
 
-inline map<pair<int, int>, pair<int, int>, mycompare>::iterator find(map<pair<int, int>, pair<int, int>, mycompare> numbers, int value, int index);
+inline map<pair<int, int>, pair<int, int>, mycompare>::iterator find(map<pair<int, int>, pair<int, int>, mycompare> &numbers, int value, int index);
+
+int search_side(map<pair<int, int>, pair<int, int>, mycompare> &numbers, int* circle, set<int> &same_i, int direction, int curr_i);
 
 
 
@@ -37,13 +39,18 @@ int main(void) {
 		numbers.insert(pair<pair<int, int>, pair<int, int> > (key, look));
 	}
 
+	int count = 0;
 	for (map<pair<int, int>, pair<int, int>, mycompare>::iterator i = numbers.begin(); i != numbers.end(); i++) {
-		find_limits(circle, numbers, i);
-	}	
-
-	for (map<pair<int, int>, pair<int, int> >::iterator i = numbers.begin(); i != numbers.end(); i++) {
-		cout << i->second.first << endl;
+		if (i->second.first == -1) {
+			// i is not configured
+			count += find_limits(circle, numbers, i);
+		}
 	}
+	cout << count << endl;
+
+	// for (map<pair<int, int>, pair<int, int> >::iterator i = numbers.begin(); i != numbers.end(); i++) {
+	// 	cout << i->second.first << endl;
+	// }
 }
 
 int find_limits(int* circle, map<pair<int, int>, pair<int, int>, mycompare> &numbers, map<pair<int, int>, pair<int, int>, mycompare>::iterator &itr) {
@@ -52,21 +59,22 @@ int find_limits(int* circle, map<pair<int, int>, pair<int, int>, mycompare> &num
 	// find right biggest
 	int curr_i = itr->first.second;
 	int curr_v = itr->first.first;
-	int next_i = next_index(curr_i, total, 1);
-	int next_v = circle[next_i];
+	// int next_i = next_index(curr_i, total, 1);
 	set<int> same_i;
 
 	bool found_max = false;
-	while (next_i != curr_i && next_v <= curr_v) {
-		if (next_v == curr_v) {
-			same_i.insert(next_i);
-			next_i = next_index(next_i, total, 1);
-			next_v = circle[next_i];
-		} else { // could be probably merged together;
-			next_i = find(numbers, next_v, next_i)->second.second;
-			next_v = circle[next_i];
-		}
-	}
+	int next_i = search_side(numbers ,circle, same_i, 1, curr_i);
+	int next_v = circle[next_i];
+	// while (next_i != curr_i && next_v <= curr_v) {
+	// 	if (next_v == curr_v) {
+	// 		same_i.insert(next_i);
+	// 		next_i = next_index(next_i, total, 1);
+	// 		next_v = circle[next_i];
+	// 	} else { // could be probably merged together;
+	// 		next_i = find(numbers, next_v, next_i)->second.second;
+	// 		next_v = circle[next_i];
+	// 	}
+	// }
 
 	if (next_i != curr_i) {
 		count++;
@@ -80,26 +88,23 @@ int find_limits(int* circle, map<pair<int, int>, pair<int, int>, mycompare> &num
 	int previous_i = next_i;
 	next_i = next_index(curr_i, total, -1);
 	next_v = circle[next_i];
-	while (next_i != curr_i && next_v <= curr_v) {
-		if (next_v == curr_v ) {
-			if (find(numbers, next_i, next_v)->second.first == -1) {
-				// start from the end
-				if (same_i.find(next_i) != same_i.end()) {
-					// form a circle
-					break;
-				} else {
-					same_i.insert(next_i);
-				}
-				next_i = next_index(next_i, total, -1);
-				next_v = circle[next_i];
-			} else {
-				break;
-			}
-		} else {
-			next_i = find(numbers, next_v, next_i)->second.first;
-			next_v = circle[next_i];
-		}
-	}
+	next_i = search_side(numbers, circle, same_i, -1, curr_i);
+	// while (next_i != curr_i && next_v <= curr_v) {
+	// 	if (next_v == curr_v ) {
+	// 		// start from the end
+	// 		if (same_i.find(next_i) != same_i.end()) {
+	// 			// form a circle
+	// 			break;
+	// 		} else {
+	// 			same_i.insert(next_i);
+	// 		}
+	// 		next_i = next_index(next_i, total, -1);
+	// 		next_v = circle[next_i];
+	// 	} else {
+	// 		next_i = find(numbers, next_v, next_i)->second.first;
+	// 		next_v = circle[next_i];
+	// 	}
+	// }
 
 	if (next_i != curr_i) {
 		if (next_v == curr_v) {
@@ -116,17 +121,17 @@ int find_limits(int* circle, map<pair<int, int>, pair<int, int>, mycompare> &num
 
 	for (set<int>::iterator i = same_i.begin(); i != same_i.end(); i++) {
 		int index = *i;
-		map<pair<int, int>, pair<int, int>, mycompare>::iterator itr = 
+		map<pair<int, int>, pair<int, int>, mycompare>::iterator curr_itr = 
 			find(numbers, circle[index], index);
 		if (found_max) {
-			itr->second.second = previous_i;
-			itr->second.first = next_i;
+			curr_itr->second.second = previous_i;
+			curr_itr->second.first = next_i;
 		} else {
-			itr->second.second = itr->first.second;
-			itr->second.first = itr->first.second;
+			curr_itr->second.second = curr_itr->first.second;
+			curr_itr->second.first = curr_itr->first.second;
 		}
 	}
-	if (previous_i == next_i) {
+	if (previous_i == next_i && next_i != curr_i) {
 		count--;
 	}
 	count += same_i.size() * (same_i.size() + 1) / 2;
@@ -137,7 +142,26 @@ inline int next_index(int c, int total, int inc) {
 	return (c+inc+total) % total;
 }
 
-inline map<pair<int, int>, pair<int, int>, mycompare>::iterator find(map<pair<int, int>, pair<int, int>, mycompare> numbers, int value, int index) {
+inline map<pair<int, int>, pair<int, int>, mycompare>::iterator find(map<pair<int, int>, pair<int, int>, mycompare> &numbers, int value, int index) {
 	pair<int, int> key(value, index);
 	return numbers.find(key);
+}
+
+int search_side(map<pair<int, int>, pair<int, int>, mycompare> &numbers, int* circle, set<int> &same_i, int direction, int curr_i) {
+	int total = numbers.size();
+	next_i = next_index(curr_i, total, -1);
+	next_v = circle[next_i];
+	while (next_i != curr_i && next_v <= curr_v) {
+		if (next_v == curr_v ) {
+			if (!same_i.insert(next).second) {
+				return next_i;
+			}
+			next_i = next_index(next_i, total, direction);
+			next_v = circle[next_i];
+		} else {
+			next_i = find(numbers, next_v, next_i)->second.first;
+			next_v = circle[next_i];
+		}
+	}
+	return next_i;
 }

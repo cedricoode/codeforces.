@@ -7,8 +7,9 @@ using namespace std;
 
 typedef pair<int, int> Node;
 
-struct mycompare {
-	bool operator()(const Node &n1, const Node& n2) {
+class mycompare {
+	public:
+	bool operator()(const Node &n1, const Node& n2) const{
 		return (n1.first < n2.first || (n1.first == n2.first && n1.second < n2.second));
 	}
 };

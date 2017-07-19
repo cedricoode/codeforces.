@@ -6,69 +6,127 @@
 using namespace std;
 
 typedef pair<int, int> Node;
+typedef map<int, int>::iterator Iterator;
+typedef map<int, int> Map;
 
-int m, t, p, mem[100][2];
+bool alloc(int size, int);
+bool erase(int pos);
+void _erase(int pos);
 
-int main(void) {
-    cin >> m >> t;
+int m, t, p, temp, mem[100][2];
+Map tbl, r_tbl; // assigned table
+Map lcd; // first byte size
+Map avl; // available map
+
+int main(void)
+{
+    cin >> t >> m;
     string op;
     // map<int, Node> locks;
     // list<vector<int> > locks;
-    set<int> locks;
 
-    for (int i = 0; i < t; i++) {
+    avl.insert(make_pair(0, m));
+
+    for (int i = 0; i < t; i++)
+    {
         cin >> op;
-        if (op[0] == 'a') {
-            int size;
-            cin >> size;
-            
-            // allocate memory
-            for (set<int>::iterator itr = locks.begin(); next(itr) != locks.end(); ++itr) {
-                if (*next(itr) - *itr - mem[*itr] >= size) {}
-            }
-
-
-
-            int start = 0;
-            bool found = false;
-            if (size > memory) {
+        if (op[0] == 'a')
+        {
+            cin >> temp;
+            if (alloc(temp, p+1)) {
+                p++;
+                cout << p << endl;
+            }else
                 cout << "NULL" << endl;
-            } else {
-                for (map<int, Node>::iterator itr = locks.begin(); itr != locks.end(); i++) {
-                    if (next(itr) == locks.end() && m - itr->second.first - itr->second.second >= size) {
-                        start = itr->second.first + itr->second.second;
-                        found = true;
-                    } else if (next(itr)->second.first - itr->second.first - itr->second.second >= size) {
-                        start = itr->second.first + itr->second.second;
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) {
-                    locks.insert(++p, make_pair(start, size));
-                } else if (locks.size() == 0 && m >= size) {
-                    locks.insert(++p, make_pair(0, size));
-                } else {
-                    cout << "NULL" << endl;
-                }
-            }
-        } else if (op[0] == 'e') {
-            int pos;
-            cin >> pos;
-            bool found = false;
-            for (map<int, Node>::iterator itr = locks.begin(); itr != locks.end(); ++itr) {
-                if (itr->first == pos) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found) {
-
+        }
+        else if (op[0] == 'e')
+        {
+            cin >> temp;
+            if (!erase(temp))
+                cout << "ILLEGAL_ERASE_ARGUMENT" << endl;
+        }
+        else
+        {
+            Iterator itr = avl.begin();
+            while (avl.size() >= 1 && itr->first + itr->second != m)
+            {
+                temp = lcd[itr->first + itr->second];
+                int p = r_tbl[itr->first+itr->second];
+                erase(p);
+                alloc(temp, p);
+                itr = avl.begin();
             }
         }
     }
 }
 
-map<int, Node>::iterator next(map<int, Node>::iterator itr) {
-    return ++itr;
+bool alloc(int t, int p)
+{
+    for (Iterator itr = avl.begin(); itr != avl.end(); ++itr)
+    {
+        if (itr->second >= t)
+        {
+            lcd.insert(make_pair(itr->first, t));
+            tbl.insert(make_pair(p, itr->first));
+            r_tbl.insert(make_pair(itr->first, p));
+
+            if (itr->second > t)
+            {
+                avl.insert(make_pair(itr->first + t, itr->second - t));
+            }
+
+            avl.erase(itr);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool erase(int id)
+{
+    Iterator itr = tbl.find(id);
+    if (itr == tbl.end()) {
+        return false;
+    } else {
+        _erase(itr->second);
+        r_tbl.erase(itr->second);
+        tbl.erase(itr);
+        return true;
+    }
+}
+
+void _erase(int pos)
+{
+    int end = lcd[pos];
+    int start = pos;
+
+    Iterator temp = avl.find(lcd[pos] + pos);
+    if (temp != avl.end())
+    {
+        end += temp->second;
+        int tod = temp->first;
+        if (temp != avl.begin()) {
+            --temp;
+            if (temp->first + temp->second == pos) {
+                start = temp->first;
+                end += temp->second;
+                avl.erase(temp->first);
+            }
+        }
+        avl.erase(tod);        
+    } else
+    {
+        for (Iterator itr = avl.begin(); itr != avl.end(); ++itr) {
+            if (itr->first + itr->second == start) {
+                start = itr->first;
+                end += itr->second;
+                avl.erase(itr);
+                break;
+            } else if (itr->first + itr->second > start) {
+                break;
+            }
+        }
+    }
+    avl.insert(make_pair(start, end));
+    lcd.erase(pos);
 }

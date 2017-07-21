@@ -6,6 +6,7 @@ const int size = 5e6;
 
 char str[size * 2+7];
 int p[(size * 2) +7];
+int dp[(size*2)+7];
 
 int len, ans;
 
@@ -28,7 +29,10 @@ int manacher() {
 		
 		if ((i+p[i])>r) {
 			c = i, r = i + p[i];
-			if (i == p[i]) ans += p[i/2] + 1;
+			if (i == p[i]) {
+				dp[i] = dp[i/2] + 1;
+				ans += dp[i];
+			}
 		}
 
 	 }

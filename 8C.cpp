@@ -1,3 +1,7 @@
+"""bitmask and dp, key observation is the order of adding objects is not important,
+so dp[n] = dp[n^(1<<j)] + 2dist(0, j) or dp[n^(1<<k)^(1<<j)] + dist(k,j) + dist(0,k) + dist(0,j). 
+note, dist and dp does not corresponding to that in the code"""
+
 #include <iostream>
 #include <vector>
 #include <climits>

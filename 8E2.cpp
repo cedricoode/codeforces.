@@ -75,15 +75,15 @@ void update_comparison(int start, int end) {
 		if (state[i] == state[n-1-i]) {
 			if (i == n/2) {
 				rl_compare[i-n/2][0] = true;
-				rl_compare[i-n/2][0] = true;
+				rl_compare[i-n/2][1] = state[i] == 0;
 			} else {
 				rl_compare[i-n/2][0] = rl_compare[i-n/2-1][0];
-				rl_compare[i-n/2][1] = rl_compare[i-n/2-1][1];
+				rl_compare[i-n/2][1] = state[i] == 0;
 			}
 		} else if (state[i] > state[n-1-i]) {
 			rl_compare[i-n/2][0] = true;
 			if (i == n/2) {
-				rl_compare[i-n/2][1] = false;
+				rl_compare[i-n/2][1] = true;
 			} else rl_compare[i-n/2][1] = rl_compare[i-n/2-1][1];
 		} else {
 			rl_compare[i-n/2][0] = false;
@@ -95,16 +95,18 @@ void update_comparison(int start, int end) {
 
 int compute_count(int start) {
 	int count = 0;
-	if (start >= n-1) {
+	if (start > n-1) {
+		return rl_compare[n-1-n/2][0] && rl_compare[n-1-n/2][1];
+	}
+	if (start == n-1) {
 		if (rl_compare[n-1-n/2][0] && rl_compare[n-1-n/2][1]) count++;
-		if (state[0] == 1 &&
-			rl_compare[n-1-n/2-1][0] && rl_compare[n-1-n/2-1][1]) count++;
+		if (state[0] == 0 && rl_compare[n-1-n/2-1][1]) count++;
 		return count;
 	}
-	count += compute_count(start++);
+	count += compute_count(start+1);
 	state[start] = 1;
 	update_comparison(start, n-1);
-	count += compute_count(start++);
+	count += compute_count(start+1);
 	state[start] = 0;
 	update_comparison(start, n-1);
 	return count;
@@ -131,7 +133,7 @@ int solve(int start, int end, LL &left) {
 int main(void) {
 	cin >> n >> k;
 
-	state = vector<int>(n, 0);
+	state = vector<int>(n+1, 0);
 	base = pow(2, n/2);	
 
 	int factor = 1;
@@ -173,15 +175,18 @@ int main(void) {
 				if (i != n/2) {
 					rl_compare[i-n/2][1] = rl_compare[i-n/2-1][1];
 				} else {
-					if (n & 1) rl_compare[i-n/2][0] = true;
-					rl_compare[i-n/2][1] = true;
+					if (n & 1) {
+						rl_compare[i-n/2][0] = true;
+						rl_compare[i-n/2][1] = false;
+					} else 
+						rl_compare[i-n/2][1] = true;
 				}
 			} else {
 				rl_compare[i-n/2][1] = true;
 				if (i != n/2)
 					rl_compare[i-n/2][0] = rl_compare[i-n/2-1][0];
 				else
-					rl_compare[i-n/2][0] = rl_compare[i-n/2-1][0];
+					rl_compare[i-n/2][0] = true;
 			}
 		}
 

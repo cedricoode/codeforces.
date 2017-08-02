@@ -49,6 +49,8 @@ bool insert(int p, int q) {
 
 	Cycles::iterator cp = cycles.find(pb);
 	Cycles::iterator cq = cycles.find(qb);
+
+	if (cp->second.isCycle || cq->second.isCycle) return false;
 	
 	CycleInfo cycleInfo;
 	// IsCycle
@@ -79,10 +81,18 @@ bool insert(int p, int q) {
 		start = pb;
 		cycleInfo.end = qb;
 		swap_position(qb, qe);
-		points[p][0] = q;
-		points[q][1] = p;
+		points[p][1] = q;
+		points[q][0] = p;
 	}
-	cycles[start] = cycleInfo;
+	int end = cycleInfo.end;
+	if (cycleInfo.end < start) {
+		swap_position(start, end);
+		cycleInfo.end = start;
+		cycles[end] = cycleInfo;
+		swap(start, end);
+	} else {
+		cycles[start] = cycleInfo;
+	}
 	if (pb != start) cycles.erase(pb);
 	if (qb != start) cycles.erase(qb);
 	
@@ -94,8 +104,10 @@ int main(void) {
 	for (int i = 0; i < n+1; i++) {
 		points[i][0] = i;
 		points[i][1] = i;
-		cycles[i] = CycleInfo(i, 1, false);
+		if (i != 0)
+			cycles[i] = CycleInfo(i, 1, false);
 	}
+
 
 	for (int i = 0; i < m; i++) {
 		int p, q;
@@ -105,4 +117,51 @@ int main(void) {
 			return 0;
 		}
 	}
+
+	int path[102];
+	int c = 0;
+	while (cycles.size() > 0) {
+		Cycles::iterator itrb = cycles.begin();
+		if (itrb->second.isCycle) {
+			if (cycles.size() != 1) {
+				cout << "NO" << endl;
+				return 0;
+			} else break;
+		}
+		Cycles::iterator itre = ++cycles.begin();
+		if (itre == cycles.end()) {
+			path[c++] = itrb->first;
+			path[c++] = itrb->second.end;
+			if (!insert(itrb->first, itrb->second.end)) {
+				cout << "NO" << endl; 
+				return 0;
+			}
+		} else {
+			path[c++] = itrb->first;
+			path[c++] = itre->first;
+			if (!insert(itrb->first, itre->first)) {
+				cout << "NO" << endl;
+				return 0;
+			}
+		}
+	}
+
+	cout << "YES" << endl;
+	cout << c/2 << endl;
+	for (int i = 0; i < c; i++) {
+		cout << path[i] << " " << path[i+1] << endl;
+		i++;
+	}
+
+	// for (Cycles::iterator itr = cycles.begin(); itr != cycles.end(); ++itr) {
+	// 	int i = itr->first;
+	// 	if (i == 0) continue;
+	// 	int j = itr->second.end;
+	// 	cout << (itr->second.isCycle ? "True: " : "False: ");
+	// 	while (j != i) {
+	// 		cout << i << ", ";
+	// 		i = points[i][1];
+	// 	}
+	// 	cout << j << endl;
+	// }
 }

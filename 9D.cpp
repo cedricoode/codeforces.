@@ -1,3 +1,4 @@
+// key the number of BST trees of n nodes t(n) = sum(t(i-1) * t(n-i)) i = 1 .. n
 #include <iostream>
 #include <set>
 #include <utility>
@@ -18,9 +19,9 @@ LL factorial(LL dep) {
 }
 
 LL compute_dp(int len, int dep, Nums &nums) {
-	// cout << "dp: " << len << " " << dep << endl;
 	if (len == 0 ) return 0;
 	else if (dep == 0 || dep == 1) {
+		dp[len][dep] = total[len];
 		return total[len];
 	}
 
@@ -39,16 +40,14 @@ LL compute_dp(int len, int dep, Nums &nums) {
 			}
 		} 
 		
-		if (dp[k2][dep-1] || k2 < dep-1) 
+		if (dp[k2][dep-1] || k2 < dep-1) {
 			sum += (total[k1] - dp[k1][dep-1]) * dp[k2][dep-1];
-		else {
+		} else {
 			itr++;
 			Nums n2(itr, nums.end());
 			itr--;
 			sum += (total[k1] - dp[k1][dep-1]) * compute_dp(k2, dep-1, n2);
 		}
-		// if (dep == h)
-			// cout << len << " " << dep << " " << *itr << " " << sum - previous << endl;
 	}
 	return dp[len][dep] = sum;
 }
@@ -64,7 +63,6 @@ int main(void) {
 			sum += total[j-1] * total[i-j];
 		}
 		total[i] = sum;
-		cout << total[i] << endl;
 	}
 	for (int i = 1; i <= n; i++) nums.insert(i);
 	cout << compute_dp(n, h, nums) << endl;

@@ -1,3 +1,4 @@
+// disjoint set data structure with path recording.
 #include <iostream>
 #include <map>
 #include <algorithm>

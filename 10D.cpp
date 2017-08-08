@@ -20,6 +20,7 @@ int find(char c, int pos, int n, int seq[])
 	return -1;
 }
 
+
 vector<int> LCS(int n, int m)
 {
 	if (dp[n][m][0] || dp[n][m][1] || !(dp[n][m][0] || dp[n][m][1] || dp[n][m][2] == 0)) {
@@ -30,55 +31,11 @@ vector<int> LCS(int n, int m)
 		return r;
 	}
 	// cout << n << " " << m << endl;
-	if (n == 0)
-	{
-		int pos = find(seq1[0], 0, m + 1, seq2);
-		vector<int> r(3, 0);
-		if (pos != -1) {
-			dp[n][m][0] = 0;
-			dp[n][m][1] = pos;
-			dp[n][m][2] = 1;
-			dp[0][pos][0] = 0;
-			dp[0][pos][1] = pos;
-			dp[0][pos][2] = 1;
-			r[0] = 0;
-			r[1] = pos;
-			r[2] = 1;
-		} else {
-			dp[n][m][0] = -1;
-			dp[n][m][1] = -1;
-			dp[n][m][2] = 0;
-			dp[pos][0][0] = pos;
-			dp[pos][0][1] = 0;
-			dp[pos][0][2] = 1;
-			r[0] = -1;
-			r[1] = -1;
-			r[2] = 0;
-		}
+	if (n < 0 || m < 0) {
+		vector<int> r(3, -1);
+		r[2] = 0;
 		return r;
 	}
-	else if (m == 0)
-	{
-		int pos = find(seq2[0], 0, n + 1, seq1);
-		vector<int> r(3, 0);
-		if (pos != -1) {
-			dp[n][m][0] = pos;
-			dp[n][m][1] = 0;
-			dp[n][m][2] = 1;
-			r[0] = pos;
-			r[1] = 0;
-			r[2] = 1;
-		} else {
-			dp[n][m][0] = -1;
-			dp[n][m][1] = -1;
-			dp[n][m][2] = 0;			
-			r[0] = -1;
-			r[1] = -1;
-			r[2] = -1;
-		}
-		return r;
-	}
-
 	if (seq1[n] == seq2[m])
 	{
 		dp[n][m][0] = n;
@@ -134,6 +91,8 @@ int main(void)
 			y = dp[x][y][1];
 		}
 	}
+
+	
 
 
 	int end = 0;
